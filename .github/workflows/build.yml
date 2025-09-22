@@ -1,4 +1,4 @@
-name: Build APK
+name: Build WebApp APK
 
 on:
   workflow_dispatch:
@@ -8,20 +8,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          node-version: 18
 
-      - name: Build with Gradle
-        run: ./gradlew assembleRelease
+      - name: Install Capacitor
+        run: npm install -g @capacitor/cli
+
+      - name: Create Capacitor Project
+        run: |
+          npx cap init MyGameApp com.example.game
+          mkdir -p www
+          cp -r * www/ || true
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Build APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: app/build/outputs/apk/release/app-release.apk
+          name: game-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
